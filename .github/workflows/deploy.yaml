@@ -15,6 +15,11 @@ on:
   push:
     branches:
       - dev
+      - main
+
+
+env:
+  IMAGE_NAME: serkox/peps-discord
 
 jobs:
   set-environment:
@@ -39,8 +44,11 @@ jobs:
             echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
           fi
 
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
+    needs: set-environment
+    outputs:
+      image_tag: ${{ steps.generate-tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
 
@@ -68,7 +76,7 @@ jobs:
           docker push $IMAGE_NAME:latest
 
   deploy:
-    needs: [build-push, set-environment]
+    needs: [build-and-push, set-environment]
     runs-on: ubuntu-latest
     environment: ${{ needs.set-environment.outputs.environment }}
     env:
@@ -107,16 +115,16 @@ jobs:
           helm upgrade --install ${{ steps.set-vars.outputs.release_name }} ./deploy \
             --namespace ${{ steps.set-vars.outputs.namespace }} \
             --set image.repository=${{ env.IMAGE_NAME }} \
-            --set image.tag=${{ needs.build-push.outputs.image_tag }} \
+            --set image.tag=${{ needs.build-and-push.outputs.image_tag }} \
             -f deploy/${{ steps.set-vars.outputs.values_file }}
 
   notify-discord:
-    needs: [deploy, set-environment, build-push]
+    needs: [deploy, set-environment, build-and-push]
     runs-on: ubuntu-latest
     environment: ${{ needs.set-environment.outputs.environment }}
     env:
       ENVIRONMENT: ${{ needs.set-environment.outputs.environment }}
-      TAG: ${{ needs.build-push.outputs.image_tag }}
+      TAG: ${{ needs.build-and-push.outputs.image_tag }}
     steps:
       - name: 📣 Envoyer une notification Discord
         run: |
