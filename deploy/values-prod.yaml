@@ -1,0 +1,4 @@
+image:
+    repository: serkox/peps-discord
+    tag: latest
+    pullPolicy: Always
