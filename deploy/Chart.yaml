@@ -1,0 +1,6 @@
+apiVersion: v2
+name: peps-discord
+description: Chart pour le bot discord de la Team Peps
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
