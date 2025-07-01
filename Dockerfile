@@ -10,8 +10,7 @@ RUN if [ "$ENV" = "dev" ]; then \
       npm install; \
     else \
       npm install --production; \
-    fi \
-
+    fi
 COPY . .
 
-CMD ["node", "index.js"]
+CMD ["node", "app.js"]
